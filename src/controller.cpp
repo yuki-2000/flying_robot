@@ -4,9 +4,6 @@
 
 // controller.cpp内の初期化を行う関数
 void controller_init() {
-    pinMode(BUTTON_PIN, INPUT_PULLUP);  
-
-
 }
 
 
@@ -42,9 +39,12 @@ OutputInfo calc_output(const SensorInfo& sensors) {
     OutputInfo outputs;
 
     //ボタンを押してリセット
-    if (INPUT_PULLUP == true){
-        integral[3]={0,0,0};
-        stable_value[0] = sensors.pitch
+    if (digitalRead(PIN_SWITCH) == false){
+        digitalWrite(PIN_LED_BUILTIN, HIGH);
+        integral[0]=0;
+        integral[1]=0;
+        integral[2]=0;
+        stable_value[0] = sensors.pitch;
         stable_value[1] = sensors.yaw;
         stable_value[2] = sensors.roll;
     }
@@ -56,30 +56,30 @@ OutputInfo calc_output(const SensorInfo& sensors) {
 
     //進行方向と機体向きの角度差をとりたい
     //進行方向の速度ベクトルを知りたいが、加速度ベクトルしかないので積分する
-    velocity[0] += sensors.accel[0]* WAIT_TIME_MS/1000;
-    velocity[1] += sensors.accel[1]* WAIT_TIME_MS/1000;
-    velocity[2] += (sensors.accel[2]-g)* WAIT_TIME_MS/1000;
+    //velocity[0] += sensors.accel[0]* WAIT_TIME_MS/1000;
+    //velocity[1] += sensors.accel[1]* WAIT_TIME_MS/1000;
+    //velocity[2] += (sensors.accel[2]-g)* WAIT_TIME_MS/1000;
 
-    Serial.println("velocitydelta");
-    Serial.println(sensors.accel[0]* WAIT_TIME_MS/1000);
-    Serial.println(sensors.accel[1]* WAIT_TIME_MS/1000);
-    Serial.println(sensors.accel[2]* WAIT_TIME_MS/1000);
-    Serial.println("velocitydelta");
+    //Serial.println("velocitydelta");
+    //Serial.println(sensors.accel[0]* WAIT_TIME_MS/1000);
+    //Serial.println(sensors.accel[1]* WAIT_TIME_MS/1000);
+    //Serial.println(sensors.accel[2]* WAIT_TIME_MS/1000);
+    //Serial.println("velocitydelta");
 
-    Serial.println(WAIT_TIME_MS);
+    //Serial.println(WAIT_TIME_MS);
 
-    position[0] += velocity[0]* WAIT_TIME_MS/1000;
-    position[1] += velocity[1]* WAIT_TIME_MS/1000;
-    position[2] += velocity[2]* WAIT_TIME_MS/1000;
+    //position[0] += velocity[0]* WAIT_TIME_MS/1000;
+    //position[1] += velocity[1]* WAIT_TIME_MS/1000;
+    //position[2] += velocity[2]* WAIT_TIME_MS/1000;
 
     //内積から角度を求める.ピッチはdgreeなので合わせる。
-    float velo_pitch = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[3]*velocity[3])) * 180/M_PI;
-    float velo_yaw = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[2]*velocity[2])) * 180/M_PI;
-    float velo_roll = acos(velocity[1]/sqrt(velocity[1]*velocity[1] + velocity[2]*velocity[2])) * 180/M_PI;
+    //float velo_pitch = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[3]*velocity[3])) * 180/M_PI;
+    //float velo_yaw = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[2]*velocity[2])) * 180/M_PI;
+    //float velo_roll = acos(velocity[1]/sqrt(velocity[1]*velocity[1] + velocity[2]*velocity[2])) * 180/M_PI;
 
-    Serial.println(velo_pitch);
-    Serial.println(velo_yaw);
-    Serial.println(velo_roll);
+    //Serial.println(velo_pitch);
+    //Serial.println(velo_yaw);
+    //Serial.println(velo_roll);
 
    //前の値を保存しておく
     error0[0] = error1[0];
@@ -93,6 +93,11 @@ OutputInfo calc_output(const SensorInfo& sensors) {
     error1[0] = stable_value[0] + 5-sensors.pitch ;
     error1[1] = stable_value[1] + 0 - sensors.yaw;
     error1[2] = stable_value[2] + 0 - sensors.roll;
+
+    Serial.println("error1");
+    Serial.println(error1[0]);
+    Serial.println(error1[1]);
+    Serial.println(error1[2]);
    
 
     integral[0] += (error1[0] + error0[0]) / 2.0 * WAIT_TIME_MS/1000;
