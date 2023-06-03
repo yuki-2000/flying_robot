@@ -120,9 +120,9 @@ OutputInfo calc_output(const SensorInfo& sensors) {
     }else{
         outputs.servo_angle_elevator = p[0] + i[0] + d[0];
     }
-    outputs.servo_angle_rudder = p[1] + i[1] + d[1];
+    outputs.servo_angle_rudder = -p[1] - i[1] - d[1];
 
-
+    return outputs;
 
     char er0[256];
     sprintf(er0,"error0 pitch: %lf, yaw: %lf, roll: %lf",error0[0], error0[1], error0[2]);
