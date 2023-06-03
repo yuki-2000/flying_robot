@@ -48,7 +48,7 @@ double target_values[3]= {0,0,0};
 
 // controller.cpp内の初期化を行う関数
 void controller_init() {}
-
+//void new_bias();
 
 
 
@@ -66,9 +66,10 @@ OutputInfo calc_output(const SensorInfo& sensors) {
         integral[0]=0;
         integral[1]=0;
         integral[2]=0;
-        target_values[0] = sensors.pitch;
-        target_values[1] = sensors.yaw;
-        target_values[2] = sensors.roll;
+        //target_values[0] = sensors.pitch;
+        //target_values[1] = sensors.yaw;
+        //target_values[2] = sensors.roll;
+        //new_bias();
     }
     else{
         outputs.led_on = false;
@@ -118,14 +119,16 @@ OutputInfo calc_output(const SensorInfo& sensors) {
     //なおアクチュエータの出力は±30度
     if (sensors.pitch >15){
         outputs.servo_angle_elevator = 30;
-        outputs.servo_angle_rudder = 30;
+        //outputs.servo_angle_rudder = 30;
     }else{
-        outputs.servo_angle_elevator = 0;
-        outputs.servo_angle_rudder = 0;
+        //outputs.servo_angle_elevator = 0;
+        //outputs.servo_angle_rudder = 0;
         //outputs.servo_angle_elevator = +{p[0] + i[0] + d[0]};
+        outputs.servo_angle_elevator = +p[0];
     }
     //ロールに応じて垂直尾翼を動かすことにする。
     //outputs.servo_angle_rudder = +{p[2] + i[2] + d[2]};
+    outputs.servo_angle_rudder = +p[2];
 
     
 

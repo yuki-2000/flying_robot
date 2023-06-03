@@ -218,3 +218,23 @@ void execute_command() {
         }
     }
 }
+
+
+
+
+// コマンドをシリアルから読み込んで実行する関数
+void new_bias() {
+
+
+
+            detect_bias(mpu, saved_data);
+
+            EEPROM.commit();
+            write_to_eeprom(ADDRESS_SAVED_DATA, saved_data);
+            EEPROM.commit();
+
+            reset_microcontroller();
+        
+    
+}
+
