@@ -4,6 +4,7 @@
 
 // controller.cpp内の初期化を行う関数
 void controller_init() {
+    pinMode(BUTTON_PIN, INPUT_PULLUP);  
 
 
 }
@@ -23,13 +24,15 @@ float error0[3]= {0,0,0};
 float error1[3]= {0,0,0};
 float integral[3]={0,0,0};
 
-float KP[3]={10,10,10};
-float KI[3]={10,10,10};
-float KD[3]={10,10,10};
+float KP[3]={2,2,2};
+float KI[3]={2,2,2};
+float KD[3]={2,2,2};
 
 float p[3]={0,0,0};
 float i[3]={0,0,0};
 float d[3]={0,0,0};
+
+float stable_value[3]= {0,0,0};
 
 
 // 制御量を計算する関数
@@ -38,7 +41,13 @@ float d[3]={0,0,0};
 OutputInfo calc_output(const SensorInfo& sensors) {
     OutputInfo outputs;
 
-
+    //ボタンを押してリセット
+    if (INPUT_PULLUP == true){
+        integral[3]={0,0,0};
+        stable_value[0] = sensors.pitch
+        stable_value[1] = sensors.yaw;
+        stable_value[2] = sensors.roll;
+    }
 
 
     // 経過時間[ms]を経過時間[s]に変換
@@ -81,9 +90,9 @@ OutputInfo calc_output(const SensorInfo& sensors) {
     //error1[1] = 0 - velo_yaw;
     //error1[2] = 0 - velo_roll;
 
-    error1[0] = 5-sensors.pitch ;
-    error1[1] = 0 - sensors.yaw;
-    error1[2] = 0 - sensors.roll;
+    error1[0] = stable_value[0] + 5-sensors.pitch ;
+    error1[1] = stable_value[1] + 0 - sensors.yaw;
+    error1[2] = stable_value[2] + 0 - sensors.roll;
    
 
     integral[0] += (error1[0] + error0[0]) / 2.0 * WAIT_TIME_MS/1000;
@@ -104,10 +113,10 @@ OutputInfo calc_output(const SensorInfo& sensors) {
 
     if (sensors.pitch >15){
         outputs.servo_angle_elevator = 30;
-        outputs.servo_angle_rudder = 30;
+        //outputs.servo_angle_rudder = 30;
     }else{
         outputs.servo_angle_elevator = p[0] + i[0] + d[0];
-        outputs.servo_angle_rudder = 0;
+        outputs.servo_angle_rudder = p[1] + i[1] + d[1];
     }
     //outputs.servo_angle_rudder = p[1] + i[1] + d[1];
     
