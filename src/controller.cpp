@@ -3,11 +3,9 @@
 #include    <math.h>
 
 // controller.cpp内の初期化を行う関数
-//void controller_init() {
- //   pinMode(BUTTON_PIN, INPUT_PULLUP);  
+void controller_init() {
+}
 
-
-//}
 
 
 
@@ -41,12 +39,15 @@ OutputInfo calc_output(const SensorInfo& sensors) {
     OutputInfo outputs;
 
     //ボタンを押してリセット
-    //if (INPUT_PULLUP == true){
-    //    integral[3]={0,0,0};
-    //    stable_value[0] = sensors.pitch
-    //    stable_value[1] = sensors.yaw;
-    //    stable_value[2] = sensors.roll;
-    //}
+    if (digitalRead(PIN_SWITCH) == false){
+        digitalWrite(PIN_LED_BUILTIN, HIGH);
+        integral[0]=0;
+        integral[1]=0;
+        integral[2]=0;
+        stable_value[0] = sensors.pitch;
+        stable_value[1] = sensors.yaw;
+        stable_value[2] = sensors.roll;
+    }
 
 
     // 経過時間[ms]を経過時間[s]に変換
@@ -55,49 +56,30 @@ OutputInfo calc_output(const SensorInfo& sensors) {
 
     //進行方向と機体向きの角度差をとりたい
     //進行方向の速度ベクトルを知りたいが、加速度ベクトルしかないので積分する
-    velocity[0] += sensors.accel[0]* WAIT_TIME_MS/1000;
-    velocity[1] += sensors.accel[1]* WAIT_TIME_MS/1000;
-    velocity[2] += (sensors.accel[2]-g)* WAIT_TIME_MS/1000;
+    //velocity[0] += sensors.accel[0]* WAIT_TIME_MS/1000;
+    //velocity[1] += sensors.accel[1]* WAIT_TIME_MS/1000;
+    //velocity[2] += (sensors.accel[2]-g)* WAIT_TIME_MS/1000;
 
-   // Serial.println("velocitydelta");
+    //Serial.println("velocitydelta");
     //Serial.println(sensors.accel[0]* WAIT_TIME_MS/1000);
     //Serial.println(sensors.accel[1]* WAIT_TIME_MS/1000);
     //Serial.println(sensors.accel[2]* WAIT_TIME_MS/1000);
     //Serial.println("velocitydelta");
 
+    //Serial.println(WAIT_TIME_MS);
 
-char velocity[256];
-sprintf(velocity,
-            "velocity",
-           "x: %lf, y: %lf, z:%lf",                                     //                                        //
-            velocity[0], velocity[1], velocity[2]);
-
-Serial.println(velocity[256]);
-
-
-    Serial.println(WAIT_TIME_MS);
-
-    position[0] += velocity[0]* WAIT_TIME_MS/1000;
-    position[1] += velocity[1]* WAIT_TIME_MS/1000;
-    position[2] += velocity[2]* WAIT_TIME_MS/1000;
-
-
-char position[256];
-sprintf(position,
-            "position",
-           "x: %lf, y: %lf, z:%lf",                                     //                                        //
-            position[0], position[1], position[2]);
-
-Serial.println(position[256]);
-
+    //position[0] += velocity[0]* WAIT_TIME_MS/1000;
+    //position[1] += velocity[1]* WAIT_TIME_MS/1000;
+    //position[2] += velocity[2]* WAIT_TIME_MS/1000;
 
     //内積から角度を求める.ピッチはdgreeなので合わせる。
-    float velo_pitch = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[3]*velocity[3])) * 180/M_PI;
-    float velo_yaw = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[2]*velocity[2])) * 180/M_PI;
-    float velo_roll = acos(velocity[1]/sqrt(velocity[1]*velocity[1] + velocity[2]*velocity[2])) * 180/M_PI;
+    //float velo_pitch = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[3]*velocity[3])) * 180/M_PI;
+    //float velo_yaw = acos(velocity[0]/sqrt(velocity[0]*velocity[0] + velocity[2]*velocity[2])) * 180/M_PI;
+    //float velo_roll = acos(velocity[1]/sqrt(velocity[1]*velocity[1] + velocity[2]*velocity[2])) * 180/M_PI;
 
-    Serial.println("velo(pitch,yaw,roll)");
-    //Serial.printf(velo_pitch,velo_yaw,velo_roll);
+    //Serial.println(velo_pitch);
+    //Serial.println(velo_yaw);
+    //Serial.println(velo_roll);
 
    //前の値を保存しておく
     error0[0] = error1[0];
@@ -111,26 +93,13 @@ Serial.println(position[256]);
     error1[0] = stable_value[0] + 5-sensors.pitch ;
     error1[1] = stable_value[1] + 0 - sensors.yaw;
     error1[2] = stable_value[2] + 0 - sensors.roll;
+
+
    
 
     integral[0] += (error1[0] + error0[0]) / 2.0 * WAIT_TIME_MS/1000;
     integral[1] += (error1[1] + error0[1]) / 2.0 * WAIT_TIME_MS/1000;
     integral[2] += (error1[2] + error0[2]) / 2.0 * WAIT_TIME_MS/1000;
-
-//float d[3];
-
-char PID[256];
-sprintf(PID,
-           "ix: %lf, iy: %lf, iz:%lf",                                     //                                        //
-            integral[0], integral[1], integral[2]);
-
-Serial.println(PID[256]);
-
-
-    //Serial.println((error1[0]-error1[0])*1000/WAIT_TIME_MS);
-    //Serial.println((error1[1]-error1[1])*1000/WAIT_TIME_MS);
-    //Serial.println((error1[2]-error1[2])*1000/WAIT_TIME_MS);
-
 
     p[0] = KP[0] * error1[0];
     p[1] = KP[1] * error1[1];
@@ -144,33 +113,6 @@ Serial.println(PID[256]);
     d[1]= KD[1]*(error1[1]-error1[1])*1000/WAIT_TIME_MS;
     d[2]= KD[2]*(error1[2]-error1[2])*1000/WAIT_TIME_MS;
 
-
-char P[256];
-sprintf(P,
-           "px: %lf, py: %lf, pz:%lf",                                     //                                        //
-            p[0], p[1], p[2]);
-
-Serial.println(PID[256]);
-
-
-char i[256];
-sprintf(i,
-           "ix: %lf, iy: %lf, iz:%lf",                                     //                                        //
-            i[0], i[1], i[2]);
-
-Serial.println(PID[256]);
-
-
-char d[256];
-sprintf(d,
-           "dx: %lf, dy: %lf, dz:%lf",                                     //                                        //
-            d[0], d[1], d[2]);
-
-Serial.println(d[256]);
-
-
-
-
     if (sensors.pitch >15){
         outputs.servo_angle_elevator = 30;
         //outputs.servo_angle_rudder = 30;
@@ -179,13 +121,20 @@ Serial.println(d[256]);
         outputs.servo_angle_rudder = p[1] + i[1] + d[1];
     }
     //outputs.servo_angle_rudder = p[1] + i[1] + d[1];
-    
-    Serial.println("PID");
-    Serial.println(p[0]);
-    Serial.println(i[0]);
-    Serial.println(d[0]);
-    
-    return outputs;
+
+
+
+    char er1[256];
+    sprintf(er1,"error1 pitch: %lf, yaw: %lf, roll: %lf",error1[0], error1[1], error1[2]);
+    Serial.println(er1);   
+
+    char pidr[256];
+    sprintf(pidr,"roll P: %lf, I: %lf, D: %lf, 合計%lf",p[0], i[0], d[0], p[0] + i[0] + d[0]);
+    Serial.println(pidr);
+
+    char pidy[256];
+    sprintf(pidy,"yaw P: %lf, I: %lf, D: %lf　合計%lf",p[1], i[1], d[1], p[1] + i[1] + d[1]);
+    Serial.println(pidy);
+
+
 }
-
-
